@@ -3,7 +3,7 @@
 ## Where things stand
 
 - Done: Delivery steps 1–6. The engine, all 14 levels with reference solutions, every mishap in the
-  table below except `flewOff` (see "Not built yet"), synthesised sound, spoken lines, stars, the
+  table below except `flewOff` (see "Not built yet"), synthesised sound, robot babble, stars, the
   level select, dad jokes, the Dockerfile, `k8s/` and both workflows. It is public at
   `github.com/axle-h/daddy-robot` and deployed to `daddyrobot.ax-h.com`.
 - Next: play-testing with her, then step 7 (loops). Level 14 is the one that wants them.
@@ -21,6 +21,9 @@
   - Loud mishaps (bonks, OUCH, PFFFT…) wake a sleeping baby within two cells, as does BEEP.
   - A woken dog walks to the nearest `basket`; biscuits that land next to an awake dog get eaten.
   - Stars: finished, no mishaps at all (😇), and a program no longer than the reference solution (✂️).
+  - Daddy Robot babbles in Web Audio instead of using `speechSynthesis`: the devices' own voices
+    sounded bad and differed everywhere. The words are only in the bubbles, so a recorded voice is
+    the option if she needs lines read to her.
 - Not built yet: wobbly things (jelly) and so `flewOff`; the doorbell/door; the "ideas to come back
   to" list; personalisation. The **Open questions** at the bottom are still open.
 - The reference for conventions (deploy, CI, Dockerfile, CLAUDE.md style) is
@@ -126,8 +129,8 @@ before.
 - Playback: about 600 ms per step by default, with a tortoise/hare speed toggle. Mishaps get their
   own longer animation.
 - Sound: Web Audio synths. Beep, boing, splash (filtered noise), zap, pfffft, ouch (a pitch sweep),
-  and a win fanfare. Speech bubbles are optionally read aloud by `speechSynthesis` in a low robot
-  voice. There's a mute toggle.
+  and a win fanfare. Speech bubbles come with robot babble: one sung bleep per syllable, the same
+  tune every time for the same line. There's a mute toggle and a talking toggle.
 - Progress lives in `localStorage` under one versioned key, and the game works if storage throws.
 
 ## Delivery

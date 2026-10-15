@@ -17,7 +17,7 @@ export function unlockAudio(): void {
   }
 }
 
-function audio(): AudioContext | null {
+export function audio(): AudioContext | null {
   return muted ? null : context
 }
 
