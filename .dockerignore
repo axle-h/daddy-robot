@@ -1,9 +1,0 @@
-**/node_modules
-**/dist
-.git
-.github
-k8s
-e2e
-test-results
-playwright-report
-coverage

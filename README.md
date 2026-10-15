@@ -36,8 +36,12 @@ Add `?all` to the URL to unlock every level.
 
 ## Deployed
 
-<https://daddyrobot.ax-h.com>. The image `ghcr.io/axle-h/daddy-robot:latest` (nginx serving `dist/`) is
-built by GitHub Actions on every push to `main`. See [`k8s/README.md`](k8s/README.md).
+<https://ax-h.com/daddy-robot/>, on GitHub Pages. Pushing a `v*` tag runs the checks and publishes
+`dist/`:
+
+```sh
+git tag v1.0.0 && git push origin v1.0.0
+```
 
 ## Layout
 
@@ -46,5 +50,4 @@ src/engine   world model and interpreter: pure TS, no React or DOM
 src/levels   level maps, goals and reference solutions
 src/ui       React components; the board is SVG
 src/audio    Web Audio sound effects, synthesised rather than sampled
-k8s/         deployment, service, ingress
 ```

@@ -4,8 +4,8 @@
 
 - Done: Delivery steps 1–6. The engine, all 14 levels with reference solutions, every mishap in the
   table below except `flewOff` (see "Not built yet"), synthesised sound, robot babble, stars, the
-  level select, the Dockerfile, `k8s/` and both workflows. It is public at
-  `github.com/axle-h/daddy-robot` and deployed to `daddyrobot.ax-h.com`.
+  level select, CI and the Pages workflow. It is public at `github.com/axle-h/daddy-robot` and
+  served by GitHub Pages at `ax-h.com/daddy-robot/`.
 - Next: play-testing with her, then step 7 (loops). Level 14 is the one that wants them.
 - `?all` on the URL unlocks every level, for grown-ups testing.
 - Decided while building, where the plan below was silent or changed:
@@ -35,8 +35,7 @@
     same. Tapping a program tile no longer deletes it; it wiggles the bin instead.
 - Not built yet: wobbly things (jelly) and so `flewOff`; the doorbell/door; the "ideas to come back
   to" list; personalisation. The **Open questions** at the bottom are still open.
-- The reference for conventions (deploy, CI, Dockerfile, CLAUDE.md style) is
-  `/home/alex/projects/make-believe`.
+- The reference for conventions (CI, CLAUDE.md style) is `/home/alex/projects/make-believe`.
 
 ## The game in one paragraph
 
@@ -156,27 +155,15 @@ before.
 6. **Ship.** See below.
 7. **Loops**, then the rest of "Later" as she grows into it.
 
-### Ship to k3s
+### Ship to GitHub Pages
 
-This follows the pattern in `make-believe`:
-
-- `Dockerfile`. The build stage is `node:22-alpine` + corepack pnpm → `pnpm build`. The runtime is
-  `nginxinc/nginx-unprivileged:alpine` serving `dist/` on 8080. `nginx.conf` sends everything that
-  isn't a file to `/index.html`, gives `/healthz` a 200, and caches hashed assets as `immutable` and
-  `index.html` as `no-cache`.
-- `k8s/daddy-robot/deployment.yml` + `service.yml`. One replica, non-root, `readOnlyRootFilesystem`
-  with an `emptyDir` on `/tmp` for nginx, and probes on `/healthz`.
-- `k8s/ingress.yml`. Traefik, `cert-manager.io/cluster-issuer: letsencrypt-production`, host
-  `daddyrobot.ax-h.com`, TLS secret `daddy-robot-axh-com-tls`.
-- `k8s/redirect-http-https.yml`. The Traefik middleware, referenced as
-  `daddy-robot-redirect-http-https@kubernetescrd`, so the namespace must be `daddy-robot`.
-- `.github/workflows/container.yml`. Build, then a smoke test run read-only and non-root (`/healthz`
-  and `/` serve the app), then push `ghcr.io/axle-h/daddy-robot:{latest,sha}` on `main`. The package
-  must be made public once.
-- DNS: done. Alex has added the record for `daddyrobot.ax-h.com` and put it in the `ddns`
-  `DOMAINS` list. If the certificate gets stuck at `READY False`, check DNS first, because
-  cert-manager uses HTTP-01.
-- `k8s/README.md` with the apply order: namespace → app → middleware → ingress.
+- `vite.config.ts` sets `base: './'` and the manifest's paths are relative, so one build works at
+  `/` locally and under `/daddy-robot/` on Pages. There are no routes, so Pages needs no SPA
+  fallback.
+- `.github/workflows/pages.yml` runs on a `v*` tag: typecheck, lint, unit tests, build, then
+  `deploy-pages`. The `github-pages` environment's deployment rules decide which refs may publish.
+- Pages serves the user site's custom domain, so the game is at `https://ax-h.com/daddy-robot/`.
+  Progress lives under that origin, so stars from the old `daddyrobot.ax-h.com` don't carry over.
 
 ## Open questions
 

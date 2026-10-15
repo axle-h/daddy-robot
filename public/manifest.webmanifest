@@ -1,10 +1,10 @@
 {
   "name": "Daddy Robot",
   "short_name": "Daddy Robot",
-  "start_url": "/",
+  "start_url": "./",
   "display": "fullscreen",
   "orientation": "any",
   "background_color": "#2b2d42",
   "theme_color": "#2b2d42",
-  "icons": [{ "src": "/robot.svg", "sizes": "any", "type": "image/svg+xml" }]
+  "icons": [{ "src": "robot.svg", "sizes": "any", "type": "image/svg+xml" }]
 }

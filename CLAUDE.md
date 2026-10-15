@@ -1,10 +1,10 @@
 # Daddy Robot
 
 A programming puzzle game for my daughter. The player builds a program from command tiles, presses
-RUN, and Daddy Robot carries it out literally, mishaps included. Static SPA, deployed to my k3s at
-`daddyrobot.ax-h.com`. `plan.md` holds the design and the level list, and its first section,
-"Where things stand", says what's done and what's next. Read it before starting, and update it when
-you finish a step.
+RUN, and Daddy Robot carries it out literally, mishaps included. Static SPA on GitHub Pages at
+`ax-h.com/daddy-robot/`, published by pushing a `v*` tag. `plan.md` holds the design and the level
+list, and its first section, "Where things stand", says what's done and what's next. Read it before
+starting, and update it when you finish a step.
 
 ## Rules of the road
 
@@ -28,8 +28,9 @@ you finish a step.
 
 pnpm; Vite; React + TypeScript; the board is React-rendered SVG, not canvas or a game engine;
 synthesised Web Audio, not sample files; progress in `localStorage`, with no backend or accounts;
-served as static files by `nginx-unprivileged`. Dependencies beyond `react`, `react-dom`, `vite`,
-`@vitejs/plugin-react`, `typescript`, `vitest`, `oxlint` and `playwright` need asking first.
+served as static files by GitHub Pages, from a relative `base` so no path is hard-coded.
+Dependencies beyond `react`, `react-dom`, `vite`, `@vitejs/plugin-react`, `typescript`, `vitest`,
+`oxlint` and `playwright` need asking first.
 
 ## Testing
 

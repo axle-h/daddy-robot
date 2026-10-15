@@ -1,9 +1,0 @@
-# Must share the Ingress's namespace: traefik resolves it as `<namespace>-<name>@kubernetescrd`.
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: redirect-http-https
-spec:
-  redirectScheme:
-    scheme: https
-    permanent: true
