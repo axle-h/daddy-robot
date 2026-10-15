@@ -37,27 +37,45 @@ const PLAIN: Partial<Record<FloorKind, string>> = {
   tiles: '#f5f5f0',
   blanket: '#fff',
   parking: '#b0b7bf',
-  basket: '#ecd9b5',
-  puddle: '#ecd9b5',
-  table: '#ecd9b5',
   water: '#4fa3e0',
 }
 
-/** Floors are drawn first; tables get their top drawn again over the robot, in `TableTop`. */
-export function FloorTile({ kind, x, y, ground }: { kind: FloorKind; x: number; y: number; ground: FloorKind }) {
+/** Textures repeat every 100 units and keep their lines off cell edges, so neighbouring cells join without seams. */
+const PLANKS = 'M0 12.5 H100 M0 37.5 H100 M0 62.5 H100 M0 87.5 H100 M30 12.5 V37.5 M80 37.5 V62.5 M55 62.5 V87.5 M5 87.5 V100 M5 0 V12.5'
+const BRICKS =
+  'M0 12.5 H100 M0 37.5 H100 M0 62.5 H100 M0 87.5 H100 M37.5 12.5 V37.5 M87.5 12.5 V37.5 M12.5 37.5 V62.5 M62.5 37.5 V62.5 M37.5 62.5 V87.5 M87.5 62.5 V87.5 M12.5 87.5 V100 M62.5 87.5 V100 M12.5 0 V12.5 M62.5 0 V12.5'
+const BUSHES = [
+  [20, 22],
+  [62, 15],
+  [90, 50],
+  [40, 58],
+  [74, 86],
+  [10, 88],
+].flatMap(([cx = 0, cy = 0]) => [-100, 0, 100].flatMap((dx) => [-100, 0, 100].map((dy) => [cx + dx, cy + dy] as const))).filter(([cx, cy]) => cx > -22 && cx < 122 && cy > -22 && cy < 122)
+
+type Floor = FloorKind[][]
+
+const kindAt = (floor: Floor, x: number, y: number) => floor[y]?.[x]
+
+/** The whole floor, drawn under everything else. */
+export function FloorLayer({ floor, ground }: { floor: Floor; ground: FloorKind }) {
+  return <>{floor.map((row, y) => row.map((kind, x) => <FloorTile key={`${x},${y}`} floor={floor} kind={kind} x={x} y={y} ground={ground} />))}</>
+}
+
+function FloorTile({ floor, kind, x, y, ground }: { floor: Floor; kind: FloorKind; x: number; y: number; ground: FloorKind }) {
   const under = kind === 'puddle' || kind === 'basket' || kind === 'table' ? ground : kind
-  const fill = PLAIN[under] ?? '#ecd9b5'
+  const fill = PLAIN[under] ?? PLAIN.floor
   return (
     <g transform={`translate(${x * 100} ${y * 100})`}>
       <rect width={101} height={101} fill={fill} />
-      {under === 'floor' && <path d="M0 33 H100 M0 66 H100 M40 0 V33 M75 33 V66 M20 66 V100" stroke="#d7bf93" strokeWidth={2} />}
+      {under === 'floor' && <path d={PLANKS} stroke="#d7bf93" strokeWidth={2} />}
       {under === 'tiles' && (
         <g fill="#cfe3f3">
           <rect width={50} height={50} />
           <rect x={50} y={50} width={50} height={50} />
         </g>
       )}
-      {under === 'rug' && <rect x={6} y={6} width={88} height={88} fill="none" stroke="#e5809a" strokeWidth={4} strokeDasharray="10 6" />}
+      {under === 'rug' && <RugEdge floor={floor} x={x} y={y} ground={ground} />}
       {under === 'grass' && (
         <g stroke="#7cb342" strokeWidth={3} strokeLinecap="round">
           <path d="M20 30 l-3 -8 M23 30 l3 -8 M70 70 l-3 -8 M73 70 l3 -8 M60 25 l0 -7" />
@@ -100,14 +118,32 @@ export function FloorTile({ kind, x, y, ground }: { kind: FloorKind; x: number; 
   )
 }
 
+const isRug = (floor: Floor, x: number, y: number, ground: FloorKind) => {
+  const k = kindAt(floor, x, y)
+  return k === 'rug' || ((k === 'puddle' || k === 'basket' || k === 'table') && ground === 'rug')
+}
+
+/** One dashed border around the whole rug, not one per cell. Dashes repeat every 25 so they line up across cells. */
+function RugEdge({ floor, x, y, ground }: { floor: Floor; x: number; y: number; ground: FloorKind }) {
+  const n = !isRug(floor, x, y - 1, ground)
+  const s = !isRug(floor, x, y + 1, ground)
+  const w = !isRug(floor, x - 1, y, ground)
+  const e = !isRug(floor, x + 1, y, ground)
+  const x0 = w ? 6 : 0
+  const x1 = e ? 94 : 100
+  const y0 = n ? 6 : 0
+  const y1 = s ? 94 : 100
+  const lines = [n && `M${x0} 6 H${x1}`, s && `M${x0} 94 H${x1}`, w && `M6 ${y0} V${y1}`, e && `M94 ${y0} V${y1}`].filter(Boolean).join(' ')
+  return lines ? <path d={lines} fill="none" stroke="#e5809a" strokeWidth={4} strokeDasharray="12.5 12.5" strokeDashoffset={-6.25} /> : null
+}
+
 function Solid({ kind }: { kind: 'wall' | 'shelf' | 'hedge' | 'counter' }) {
   switch (kind) {
     case 'wall':
       return (
         <g>
           <rect width={101} height={101} fill="#6d597a" />
-          <rect width={100} height={14} fill="#8d7a9b" />
-          <path d="M0 45 H100 M0 75 H100 M30 14 V45 M70 45 V75 M40 75 V100" stroke="#5b4868" strokeWidth={3} />
+          <path d={BRICKS} stroke="#5b4868" strokeWidth={3} />
         </g>
       )
     case 'shelf':
@@ -127,19 +163,12 @@ function Solid({ kind }: { kind: 'wall' | 'shelf' | 'hedge' | 'counter' }) {
       )
     case 'hedge':
       return (
-        <g>
-          <rect width={100} height={100} fill="#4c8c2b" />
-          {[
-            [20, 25],
-            [60, 20],
-            [85, 50],
-            [35, 60],
-            [70, 80],
-            [15, 85],
-          ].map(([cx, cy]) => (
-            <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={20} fill="#5aa335" />
+        <svg width={101} height={101} viewBox="0 0 101 101" overflow="hidden">
+          <rect width={101} height={101} fill="#4c8c2b" />
+          {BUSHES.map(([cx, cy]) => (
+            <circle key={`${cx},${cy}`} cx={cx} cy={cy} r={20} fill="#5aa335" />
           ))}
-        </g>
+        </svg>
       )
     case 'counter':
       return (
@@ -153,14 +182,18 @@ function Solid({ kind }: { kind: 'wall' | 'shelf' | 'hedge' | 'counter' }) {
   }
 }
 
-/** The top of a table, drawn over the robot so he can be seen sitting under it. */
-export function TableTop({ x, y, rattle }: { x: number; y: number; rattle: boolean }) {
+/** Table tops, drawn over the robot so he can be seen sitting under them. One translucent group, so neighbouring tops don't darken where they overlap. */
+export function TableTops({ floor, rattle }: { floor: Floor; rattle: boolean }) {
+  const cells = floor.flatMap((row, y) => row.flatMap((f, x) => (f === 'table' ? [{ x, y }] : [])))
+  if (cells.length === 0) return null
   return (
-    <g transform={`translate(${x * 100} ${y * 100})`}>
-      <g className={rattle ? 'rattle' : undefined}>
-        <rect x={-1} y={-1} width={102} height={102} fill="#8d5524" opacity={0.6} />
-        <path d="M0 30 H100 M0 70 H100" stroke="#6b3e17" strokeWidth={3} opacity={0.6} />
-      </g>
+    <g opacity={0.6} className={rattle ? 'rattle' : undefined}>
+      {cells.map(({ x, y }) => (
+        <g key={`${x},${y}`} transform={`translate(${x * 100} ${y * 100})`}>
+          <rect width={101} height={101} fill="#8d5524" />
+          <path d="M0 30 H100 M0 70 H100" stroke="#6b3e17" strokeWidth={3} />
+        </g>
+      ))}
     </g>
   )
 }

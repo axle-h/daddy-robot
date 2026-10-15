@@ -1,3 +1,4 @@
+import type { PointerEvent } from 'react'
 import type { Command } from '../engine'
 
 const COLOUR: Record<Command, string> = {
@@ -57,20 +58,23 @@ function EmojiIcon({ glyph, arrow }: { glyph: string; arrow?: string }) {
 
 interface TileProps {
   command: Command
-  onPress?: () => void
+  onPointerDown?: (e: PointerEvent<HTMLButtonElement>) => void
+  /** Marks a tile in the program strip, so a drag can work out which gap it is over. */
+  slot?: boolean
   disabled?: boolean
   state?: 'current' | 'oops' | 'kaput' | 'done' | undefined
   isNew?: boolean
   small?: boolean
 }
 
-export function Tile({ command, onPress, disabled, state, isNew, small }: TileProps) {
+export function Tile({ command, onPointerDown, slot, disabled, state, isNew, small }: TileProps) {
   return (
     <button
       type="button"
       className={`tile ${small ? 'small' : ''} ${state ?? ''} ${isNew ? 'new' : ''}`}
       style={{ ['--tile' as string]: COLOUR[command] }}
-      onClick={onPress}
+      onPointerDown={onPointerDown}
+      data-slot={slot || undefined}
       disabled={disabled}
       aria-label={command}
     >

@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { FloorKind, Goal, MishapId, Vec, World, WorldEvent } from '../engine'
 import { Robot, type Mood } from './Robot'
-import { FloorTile, TableTop, THING_EMOJI, ThingSprite } from './sprites'
+import { FloorLayer, TableTops, THING_EMOJI, ThingSprite } from './sprites'
 
 interface Props {
   world: World
@@ -13,8 +13,6 @@ interface Props {
   mood: Mood
   /** How long this step's movement takes to play. */
   moveMs: number
-  /** The goal, said in a bubble before the first tile goes down. */
-  intro?: string | undefined
 }
 
 const BURST: Partial<Record<MishapId, string>> = {
@@ -62,7 +60,7 @@ const PARTICLE: Partial<Record<MishapId, string>> = {
   floatedAway: '👋',
 }
 
-export function Board({ world, ground, goal, events, stepKey, angle, mood, moveMs, intro }: Props) {
+export function Board({ world, ground, goal, events, stepKey, angle, mood, moveMs }: Props) {
   const { width, height, robot } = world
   const mishap = events.find((e) => e.type === 'mishap')
   const launched = events.some((e) => e.type === 'launched')
@@ -73,13 +71,10 @@ export function Board({ world, ground, goal, events, stepKey, angle, mood, moveM
   const facingGoal = findFacing(goal)
   const motion: CSSProperties = { transition: `transform ${moveMs}ms ${slid ? 'linear' : 'ease-in-out'}` }
 
-  const tables: Vec[] = []
-  world.floor.forEach((row, y) => row.forEach((f, x) => f === 'table' && tables.push({ x, y })))
-
   return (
     <div className="board" style={{ aspectRatio: `${width} / ${height}`, ['--ratio' as string]: width / height }}>
       <svg viewBox={`0 0 ${width * 100} ${height * 100}`} className="board-svg" role="img" aria-label="The room">
-        {world.floor.map((row, y) => row.map((kind, x) => <FloorTile key={`${x},${y}`} kind={kind} x={x} y={y} ground={ground} />))}
+        <FloorLayer floor={world.floor} ground={ground} />
         {goalCells.map((p) => (
           <g key={`goal-${p.x},${p.y}`} transform={`translate(${p.x * 100} ${p.y * 100})`} className="goal-cell">
             <rect x={6} y={6} width={88} height={88} rx={14} fill="none" stroke="#ffd166" strokeWidth={6} strokeDasharray="14 10" />
@@ -96,17 +91,10 @@ export function Board({ world, ground, goal, events, stepKey, angle, mood, moveM
         <g className="robot" style={{ transform: `translate(${robot.pos.x * 100}px, ${robot.pos.y * 100}px)`, ...motion }}>
           <Robot robot={robot} angle={angle} mood={mood} animation={animation} stepKey={stepKey} />
         </g>
-        {tables.map((p) => (
-          <TableTop key={`table-${p.x},${p.y}`} x={p.x} y={p.y} rattle={tableRattle} />
-        ))}
+        <TableTops floor={world.floor} rattle={tableRattle} />
       </svg>
       <div className="effects" key={stepKey}>
         {effects(events, world)}
-        {intro && (
-          <At at={robot.pos} world={world} className={robot.pos.y === 0 ? 'bubble below' : 'bubble'}>
-            {intro}
-          </At>
-        )}
       </div>
     </div>
   )
@@ -143,9 +131,11 @@ function targetCells(goal: Goal, world: World): Vec[] {
 
 function At({ at, world, className, children }: { at: Vec; world: World; className: string; children: ReactNode }) {
   const bubble = className.startsWith('bubble')
+  // A burst rises from his head, so in the top rows it starts lower to stay on the board.
+  const dy = className === 'bubble' ? -0.2 : className === 'bubble below' ? 1 : className.startsWith('burst') && at.y <= 1 ? 0.9 : 0
   const style: CSSProperties = {
     left: `${((at.x + 0.5) / world.width) * 100}%`,
-    top: `${((at.y + (className === 'bubble' ? -0.2 : className === 'bubble below' ? 1 : 0)) / world.height) * 100}%`,
+    top: `${((at.y + dy) / world.height) * 100}%`,
   }
   // Bubbles near a side lean inwards so they stay on the board.
   const lean = !bubble ? '' : (at.x + 0.5) / world.width < 0.34 ? 'start' : (at.x + 0.5) / world.width > 0.66 ? 'end' : ''
@@ -240,7 +230,7 @@ function effects(events: WorldEvent[], world: World): ReactNode[] {
   })
   if (said?.type === 'said' && said.text !== 'BEEP BEEP!')
     out.push(
-      <At key="said" at={robot} world={world} className={events.some((e) => e.type === 'mishap' && BURST[e.id]) ? 'bubble below' : 'bubble'}>
+      <At key="said" at={robot} world={world} className={robot.y <= 1 || events.some((e) => e.type === 'mishap' && BURST[e.id]) ? 'bubble below' : 'bubble'}>
         {said.text}
       </At>,
     )

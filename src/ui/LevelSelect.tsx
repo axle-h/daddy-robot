@@ -4,7 +4,7 @@ import { LEVELS } from '../levels/levels'
 import { Icon, Star } from './icons'
 import { unlocked, type Progress } from './progress'
 import { Robot } from './Robot'
-import { FloorTile, TableTop, ThingSprite } from './sprites'
+import { FloorLayer, TableTops, ThingSprite } from './sprites'
 
 interface Props {
   progress: Progress
@@ -17,10 +17,9 @@ const MASCOT = { ...parseLevel(LEVELS[0]!).robot, facing: 'S' as const }
 /** The level's starting room in miniature, so each card shows where you're going instead of a caption. */
 function Preview({ level }: { level: Level }) {
   const world = parseLevel(level)
-  const ground = level.ground ?? 'floor'
   return (
     <svg viewBox={`0 0 ${world.width * 100} ${world.height * 100}`} className="level-preview" aria-hidden>
-      {world.floor.map((row, y) => row.map((kind, x) => <FloorTile key={`${x},${y}`} kind={kind} x={x} y={y} ground={ground} />))}
+      <FloorLayer floor={world.floor} ground={level.ground ?? 'floor'} />
       {world.things.map((t) => (
         <g key={t.id} transform={`translate(${t.pos.x * 100} ${t.pos.y * 100})`}>
           <ThingSprite thing={t} />
@@ -29,7 +28,7 @@ function Preview({ level }: { level: Level }) {
       <g transform={`translate(${world.robot.pos.x * 100} ${world.robot.pos.y * 100})`}>
         <Robot robot={{ ...world.robot, facing: 'S' }} angle={180} mood="happy" stepKey={0} />
       </g>
-      {world.floor.flatMap((row, y) => row.map((f, x) => (f === 'table' ? <TableTop key={`t${x},${y}`} x={x} y={y} rattle={false} /> : null)))}
+      <TableTops floor={world.floor} rattle={false} />
     </svg>
   )
 }

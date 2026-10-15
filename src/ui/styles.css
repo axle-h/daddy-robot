@@ -5,7 +5,7 @@
   --cream: #fff8e7;
   --gold: #ffd166;
   --tile-size: 84px;
-  --chip-size: 58px;
+  --chip-size: 72px;
   --big-size: 96px;
   color-scheme: dark;
 }
@@ -116,6 +116,23 @@ button:disabled {
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
 }
 
+.title-words {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.title-goal {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.2;
+  font-size: clamp(13px, 2vw, 17px);
+  font-weight: 700;
+  opacity: 0.7;
+}
+
 .title-text {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -182,12 +199,79 @@ button:disabled {
 
 .strip-tiles {
   flex: 1;
+  align-self: stretch;
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  max-height: calc(var(--chip-size) * 2 + 20px);
+  align-content: flex-start;
+  gap: 8px;
+  min-height: var(--chip-size);
+  max-height: calc(var(--chip-size) * 2 + 8px + 24px);
   overflow-y: auto;
-  padding: 4px;
+  /* Room for the current tile's grow and outline, which the scroll box would otherwise clip. */
+  padding: 12px;
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+
+.strip-tiles.over {
+  background: rgba(255, 209, 102, 0.12);
+}
+
+.tile-gap {
+  flex: none;
+  width: var(--chip-size);
+  height: var(--chip-size);
+  box-sizing: border-box;
+  border-radius: 13px;
+  border: 3px dashed var(--gold);
+  background: rgba(255, 209, 102, 0.15);
+}
+
+.palette .tile,
+.strip .tile {
+  touch-action: none;
+}
+
+.drag-ghost {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  transform: rotate(-4deg) scale(1.08);
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.45));
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.drag-ghost.binning {
+  transform: rotate(-12deg) scale(0.7);
+  opacity: 0.75;
+}
+
+.round.clear {
+  transition:
+    transform 0.15s,
+    background 0.15s;
+}
+
+.round.clear.ready {
+  background: #6b4a6e;
+}
+
+.round.clear.over {
+  background: #e63946;
+  transform: scale(1.2);
+}
+
+.round.clear > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.nudge {
+  animation: shake 0.4s 2;
 }
 
 .strip-hint {
@@ -257,8 +341,8 @@ button:disabled {
 
 .tile.current {
   opacity: 1;
-  transform: scale(1.15);
-  outline: 5px solid var(--gold);
+  transform: scale(1.08);
+  outline: 4px solid var(--gold);
   z-index: 1;
 }
 
@@ -1194,7 +1278,7 @@ button:disabled {
 @media (max-width: 700px) {
   :root {
     --tile-size: 62px;
-    --chip-size: 46px;
+    --chip-size: 56px;
     --big-size: 70px;
   }
   .round {
@@ -1220,7 +1304,7 @@ button:disabled {
 @media (orientation: landscape) and (max-height: 560px) {
   :root {
     --tile-size: 58px;
-    --chip-size: 42px;
+    --chip-size: 50px;
     --big-size: 64px;
   }
   .play {

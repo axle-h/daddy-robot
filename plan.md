@@ -26,6 +26,10 @@
     the option if she needs lines read to her.
   - No dad jokes, and no emoji in the interface: buttons use drawn line icons, level cards show the
     room in miniature, and emoji are kept for things on the board and the action tiles.
+  - Floor textures repeat every cell and keep their lines off cell edges, so rooms tile seamlessly;
+    the rug gets one border round the whole rug.
+  - Drag and drop is hand-rolled on pointer events (no library), so a finger and a mouse behave the
+    same. Tapping a program tile no longer deletes it; it wiggles the bin instead.
 - Not built yet: wobbly things (jelly) and so `flewOff`; the doorbell/door; the "ideas to come back
   to" list; personalisation. The **Open questions** at the bottom are still open.
 - The reference for conventions (deploy, CI, Dockerfile, CLAUDE.md style) is
@@ -34,8 +38,9 @@
 ## The game in one paragraph
 
 A top-down grid room. Daddy Robot (moustache, tie, telescopic neck, very literal) stands at the
-start. The player taps command tiles to build a program, which shows as a strip of tiles. Tapping a
-tile in the strip removes it, and there is a clear button. **RUN** plays the program one tile at a
+start. The player taps command tiles to add them to the end of a program, which shows as a strip of
+tiles, or drags them into any gap. Tiles in the strip can be dragged to move them, or onto the bin
+to delete them, and tapping the bin clears the lot. **RUN** plays the program one tile at a
 time and highlights the current tile. **RESET** puts the room and the robot back where they started.
 The program is kept so it can be fixed. The level is won when the goal is true at the end of the
 program. A win earns a celebration and stars.
@@ -84,7 +89,7 @@ cell), a sprinkler, a revolving door, a Roomba that gets in the way.
 
 Small composable predicates: `at(cell)`, `holding(thing)`, `thingAt(thing, cell)`, `sitting`,
 `sittingOn(thing)`, `beepedAt(thing)`, `didNot(mishap)`, combined with `all(...)`. Each level's goal
-is outlined on the board, and Daddy Robot says it in a bubble until the first tile goes down.
+is outlined on the board, and written under the level's name in the top bar.
 
 ## Levels
 

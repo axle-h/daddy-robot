@@ -1,13 +1,15 @@
-import { useEffect, useEffectEvent, useMemo, useState } from 'react'
+import { Fragment, useEffect, useEffectEvent, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { SFX, playEvents, unlockAudio } from '../audio/sfx'
 import { speak, stopSpeaking } from '../audio/speech'
 import { parseLevel, run, stars, type Command, type Dir, type RunResult, type Stars, type TraceStep } from '../engine'
 import { LEVELS } from '../levels/levels'
 import { Board, DIR_ANGLE } from './Board'
 import { Icon, Star } from './icons'
+import { drop, without, type DragSource, type DropTarget } from './program'
 import type { Progress } from './progress'
 import type { Mood } from './Robot'
 import { Tile } from './Tile'
+import { useDrag } from './useDrag'
 
 interface Props {
   levelIndex: number
@@ -54,6 +56,9 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
   const [finished, setFinished] = useState(false)
   const [celebration, setCelebration] = useState<Stars | null>(null)
   const [runId, setRunId] = useState(0)
+  const [nudge, setNudge] = useState(0)
+  const stripRef = useRef<HTMLDivElement>(null)
+  const binRef = useRef<HTMLButtonElement>(null)
 
   const result = running?.result
   const step = result && index >= 0 ? result.trace[index] : undefined
@@ -136,6 +141,39 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
     setRunId((n) => n + 1)
   }
 
+  const full = program.length >= MAX_PROGRAM
+  const { dragging, start: startDrag } = useDrag({
+    strip: stripRef,
+    bin: binRef,
+    onTap: (source: DragSource) => {
+      if (source.from === 'strip') return setNudge((n) => n + 1)
+      if (full) return
+      unlockAudio()
+      SFX.tap()
+      edit((p) => [...p, source.command])
+    },
+    onDrop: (source: DragSource, target: DropTarget) => {
+      if (!target || (target.kind === 'bin' && source.from === 'palette')) return
+      unlockAudio()
+      if (target.kind === 'bin') SFX.untap()
+      else SFX.tap()
+      edit((p) => drop(p, source, target, MAX_PROGRAM))
+    },
+  })
+  const grab = (source: DragSource) => (e: PointerEvent<HTMLElement>) => {
+    if (busy || (source.from === 'palette' && full)) return
+    startDrag(e, source)
+  }
+
+  // While dragging, the strip shows the program with the tile lifted out and a gap where it would land.
+  const shown = dragging ? without(program, dragging.source) : program
+  const gap =
+    dragging?.target?.kind === 'strip'
+      ? dragging.target.index
+      : dragging?.source.from === 'strip' && dragging.target?.kind !== 'bin'
+        ? dragging.source.index
+        : -1
+
   const tileStates = useMemo(() => {
     const states: Record<number, 'oops' | 'kaput' | 'done' | 'current'> = {}
     if (!result) return states
@@ -166,7 +204,10 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
         </button>
         <div className="title">
           <span className="level-no">{levelIndex + 1}</span>
-          <span className="title-text">{level.title}</span>
+          <span className="title-words">
+            <span className="title-text">{level.title}</span>
+            <span className="title-goal">{level.intro}</span>
+          </span>
         </div>
         <div className="toggles">
           <button type="button" className="round" onClick={() => onProgress((p) => ({ ...p, fast: !p.fast }))} aria-label="Speed">
@@ -189,20 +230,31 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
           angle={angle}
           mood={mood}
           moveMs={moveMs(step, speed)}
-          intro={running || program.length > 0 ? undefined : level.intro}
         />
       </main>
 
       <section className="strip" aria-label="Program">
-        <div className="strip-tiles">
-          {program.length === 0 && <span className="strip-hint" />}
-          {program.map((c, i) => (
-            <Tile key={i} command={c} small state={tileStates[i]} onPress={() => edit((p) => p.filter((_, j) => j !== i))} disabled={busy} />
+        <div className={`strip-tiles ${dragging?.target?.kind === 'strip' ? 'over' : ''}`} ref={stripRef}>
+          {shown.length === 0 && gap < 0 && <span className="strip-hint" />}
+          {shown.map((c, i) => (
+            <Fragment key={i}>
+              {i === gap && <span className="tile-gap" />}
+              <Tile
+                command={c}
+                small
+                slot
+                state={dragging ? undefined : tileStates[i]}
+                disabled={busy}
+                onPointerDown={grab({ from: 'strip', command: c, index: i })}
+              />
+            </Fragment>
           ))}
+          {gap >= shown.length && <span className="tile-gap" />}
         </div>
         <button
+          ref={binRef}
           type="button"
-          className="round clear"
+          className={`round clear ${dragging?.source.from === 'strip' ? 'ready' : ''} ${dragging?.target?.kind === 'bin' ? 'over' : ''}`}
           onClick={() => {
             SFX.untap()
             edit(() => [])
@@ -210,24 +262,16 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
           disabled={busy || program.length === 0}
           aria-label="Clear the program"
         >
-          <Icon name="bin" />
+          <span key={nudge} className={nudge ? 'nudge' : undefined}>
+            <Icon name="bin" />
+          </span>
         </button>
       </section>
 
       <section className="controls">
         <div className="palette">
           {level.commands.map((c) => (
-            <Tile
-              key={c}
-              command={c}
-              isNew={fresh.includes(c)}
-              disabled={busy || program.length >= MAX_PROGRAM}
-              onPress={() => {
-                unlockAudio()
-                SFX.tap()
-                edit((p) => [...p, c])
-              }}
-            />
+            <Tile key={c} command={c} isNew={fresh.includes(c)} disabled={busy || full} onPointerDown={grab({ from: 'palette', command: c })} />
           ))}
         </div>
         <div className="go">
@@ -239,6 +283,12 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
           </button>
         </div>
       </section>
+
+      {dragging && (
+        <div className={`drag-ghost ${dragging.target?.kind === 'bin' && dragging.source.from === 'strip' ? 'binning' : ''}`} style={{ left: dragging.x - dragging.grabX, top: dragging.y - dragging.grabY }}>
+          <Tile command={dragging.source.command} small={dragging.source.from === 'strip'} />
+        </div>
+      )}
 
       {celebration && (
         <Celebration
