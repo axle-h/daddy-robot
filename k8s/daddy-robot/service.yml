@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: daddy-robot
+  labels:
+    app: daddy-robot
+spec:
+  type: ClusterIP
+  ports:
+    # Named, so the ingress refers to it by name and never by number.
+    - port: 80
+      targetPort: http
+      name: http
+  selector:
+    app: daddy-robot
