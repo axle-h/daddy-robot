@@ -168,8 +168,6 @@ export interface LegendEntry {
 export interface Level {
   id: string
   title: string
-  /** The goal as pictures, for a player who doesn't read yet. */
-  card: string[]
   /** The goal as Daddy Robot says it out loud. */
   intro: string
   map: string[]

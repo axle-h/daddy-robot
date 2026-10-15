@@ -68,7 +68,7 @@ export function Tile({ command, onPress, disabled, state, isNew, small }: TilePr
   return (
     <button
       type="button"
-      className={`tile ${small ? 'small' : ''} ${state ?? ''}`}
+      className={`tile ${small ? 'small' : ''} ${state ?? ''} ${isNew ? 'new' : ''}`}
       style={{ ['--tile' as string]: COLOUR[command] }}
       onClick={onPress}
       disabled={disabled}
@@ -76,8 +76,7 @@ export function Tile({ command, onPress, disabled, state, isNew, small }: TilePr
     >
       <Icon command={command} />
       <span className="tile-code">{command}</span>
-      {isNew && <span className="tile-new">✨</span>}
-      {(state === 'oops' || state === 'kaput') && <span className="tile-flag">{state === 'kaput' ? '💥' : '⚠️'}</span>}
+      {(state === 'oops' || state === 'kaput') && <span className="tile-flag">!</span>}
     </button>
   )
 }

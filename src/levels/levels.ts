@@ -12,7 +12,6 @@ export const LEVELS: Level[] = [
   {
     id: 'walkies',
     title: 'Walkies',
-    card: ['🤖', '➡️', '🚩'],
     intro: 'Walk me to the flag!',
     map: [
       '######', //
@@ -26,7 +25,6 @@ export const LEVELS: Level[] = [
   {
     id: 'round-the-bend',
     title: 'Round the bend',
-    card: ['🤖', '↪️', '🚩'],
     intro: 'Round the corner to the flag!',
     map: [
       '######', //
@@ -42,7 +40,6 @@ export const LEVELS: Level[] = [
   {
     id: 'reverse-parking',
     title: 'Reverse parking',
-    card: ['🤖', '🔙', '🅿️'],
     intro: 'Park me in the garage, facing out!',
     ground: 'path',
     map: [
@@ -60,7 +57,6 @@ export const LEVELS: Level[] = [
   {
     id: 'biscuit-delivery',
     title: 'Biscuit delivery',
-    card: ['🍪', '➡️', '👧'],
     intro: 'Take the biscuits to the girl on the rug!',
     map: [
       '#######', //
@@ -77,7 +73,6 @@ export const LEVELS: Level[] = [
   {
     id: 'mind-the-pond',
     title: 'Mind the pond',
-    card: ['🤖', '🚫', '🌊', '🚩'],
     intro: "Get to the flag. Don't fall in the pond!",
     ground: 'path',
     map: [
@@ -94,7 +89,6 @@ export const LEVELS: Level[] = [
   {
     id: 'lego-minefield',
     title: 'Lego minefield',
-    card: ['🤖', '🚫', '🧱', '🚩'],
     intro: 'Get to the flag. Mind the Lego!',
     ground: 'rug',
     map: [
@@ -111,7 +105,6 @@ export const LEVELS: Level[] = [
   {
     id: 'pigeon-problem',
     title: 'Pigeon problem',
-    card: ['📢', '🐦', '➡️', '🚩'],
     intro: 'Get past the pigeons to the flag!',
     ground: 'path',
     map: [
@@ -128,7 +121,6 @@ export const LEVELS: Level[] = [
   {
     id: 'under-the-table',
     title: 'Under the table',
-    card: ['🪑', '🍪', '➡️', '👧'],
     intro: 'Get the biscuit from under the table, for the girl!',
     map: [
       '########', //
@@ -146,7 +138,6 @@ export const LEVELS: Level[] = [
   {
     id: 'banana-boulevard',
     title: 'Banana boulevard',
-    card: ['🍌', '💨', '🚩'],
     intro: 'Slide to the flag on the banana. Watch out for the fish tank!',
     ground: 'tiles',
     map: [
@@ -163,7 +154,6 @@ export const LEVELS: Level[] = [
   {
     id: 'shhh',
     title: 'Shhh!',
-    card: ['🍼', '➡️', '👶', '🤫'],
     intro: "Shhh! Take the bottle to the baby. Don't wake her up!",
     ground: 'rug',
     map: [
@@ -180,7 +170,6 @@ export const LEVELS: Level[] = [
   {
     id: 'sleeping-dogs',
     title: 'Let sleeping dogs lie',
-    card: ['🍪', '➡️', '👧', '🤫', '🐕'],
     intro: "Take the biscuits to the girl. Don't wake the dog!",
     map: [
       '#########', //
@@ -196,7 +185,6 @@ export const LEVELS: Level[] = [
   {
     id: 'sparkys-toaster',
     title: "Sparky's toaster",
-    card: ['🍞', '✋', '🚫', '💧'],
     intro: 'Get the toast. Stay out of the puddle!',
     ground: 'tiles',
     map: [
@@ -214,7 +202,6 @@ export const LEVELS: Level[] = [
   {
     id: 'picnic',
     title: 'Picnic',
-    card: ['🤖', '🪑', '🧺'],
     intro: 'Sit down on the picnic blanket!',
     ground: 'grass',
     map: [
@@ -231,7 +218,6 @@ export const LEVELS: Level[] = [
   {
     id: 'the-big-shop',
     title: 'The big shop',
-    card: ['🛒', '🍪', '➡️', '👧'],
     intro: 'Fetch the biscuits from the shop, for the girl!',
     ground: 'tiles',
     map: [

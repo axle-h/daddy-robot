@@ -13,6 +13,8 @@ interface Props {
   mood: Mood
   /** How long this step's movement takes to play. */
   moveMs: number
+  /** The goal, said in a bubble before the first tile goes down. */
+  intro?: string | undefined
 }
 
 const BURST: Partial<Record<MishapId, string>> = {
@@ -60,7 +62,7 @@ const PARTICLE: Partial<Record<MishapId, string>> = {
   floatedAway: '👋',
 }
 
-export function Board({ world, ground, goal, events, stepKey, angle, mood, moveMs }: Props) {
+export function Board({ world, ground, goal, events, stepKey, angle, mood, moveMs, intro }: Props) {
   const { width, height, robot } = world
   const mishap = events.find((e) => e.type === 'mishap')
   const launched = events.some((e) => e.type === 'launched')
@@ -100,6 +102,11 @@ export function Board({ world, ground, goal, events, stepKey, angle, mood, moveM
       </svg>
       <div className="effects" key={stepKey}>
         {effects(events, world)}
+        {intro && (
+          <At at={robot.pos} world={world} className={robot.pos.y === 0 ? 'bubble below' : 'bubble'}>
+            {intro}
+          </At>
+        )}
       </div>
     </div>
   )
@@ -135,12 +142,15 @@ function targetCells(goal: Goal, world: World): Vec[] {
 }
 
 function At({ at, world, className, children }: { at: Vec; world: World; className: string; children: ReactNode }) {
+  const bubble = className.startsWith('bubble')
   const style: CSSProperties = {
     left: `${((at.x + 0.5) / world.width) * 100}%`,
     top: `${((at.y + (className === 'bubble' ? -0.2 : className === 'bubble below' ? 1 : 0)) / world.height) * 100}%`,
   }
+  // Bubbles near a side lean inwards so they stay on the board.
+  const lean = !bubble ? '' : (at.x + 0.5) / world.width < 0.34 ? 'start' : (at.x + 0.5) / world.width > 0.66 ? 'end' : ''
   return (
-    <div className={`fx ${className}`} style={style}>
+    <div className={`fx ${className} ${lean}`} style={style}>
       {children}
     </div>
   )

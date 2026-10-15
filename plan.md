@@ -4,7 +4,7 @@
 
 - Done: Delivery steps 1–6. The engine, all 14 levels with reference solutions, every mishap in the
   table below except `flewOff` (see "Not built yet"), synthesised sound, robot babble, stars, the
-  level select, dad jokes, the Dockerfile, `k8s/` and both workflows. It is public at
+  level select, the Dockerfile, `k8s/` and both workflows. It is public at
   `github.com/axle-h/daddy-robot` and deployed to `daddyrobot.ax-h.com`.
 - Next: play-testing with her, then step 7 (loops). Level 14 is the one that wants them.
 - `?all` on the URL unlocks every level, for grown-ups testing.
@@ -24,6 +24,8 @@
   - Daddy Robot babbles in Web Audio instead of using `speechSynthesis`: the devices' own voices
     sounded bad and differed everywhere. The words are only in the bubbles, so a recorded voice is
     the option if she needs lines read to her.
+  - No dad jokes, and no emoji in the interface: buttons use drawn line icons, level cards show the
+    room in miniature, and emoji are kept for things on the board and the action tiles.
 - Not built yet: wobbly things (jelly) and so `flewOff`; the doorbell/door; the "ideas to come back
   to" list; personalisation. The **Open questions** at the bottom are still open.
 - The reference for conventions (deploy, CI, Dockerfile, CLAUDE.md style) is
@@ -36,7 +38,7 @@ start. The player taps command tiles to build a program, which shows as a strip 
 tile in the strip removes it, and there is a clear button. **RUN** plays the program one tile at a
 time and highlights the current tile. **RESET** puts the room and the robot back where they started.
 The program is kept so it can be fixed. The level is won when the goal is true at the end of the
-program. A win earns a celebration and a dad joke.
+program. A win earns a celebration and stars.
 
 ## World model
 
@@ -82,7 +84,7 @@ cell), a sprinkler, a revolving door, a Roomba that gets in the way.
 
 Small composable predicates: `at(cell)`, `holding(thing)`, `thingAt(thing, cell)`, `sitting`,
 `sittingOn(thing)`, `beepedAt(thing)`, `didNot(mishap)`, combined with `all(...)`. Each level's goal
-is shown as a picture card ("🍪 → 👧"), not as words.
+is outlined on the board, and Daddy Robot says it in a bubble until the first tile goes down.
 
 ## Levels
 
@@ -142,7 +144,7 @@ before.
 3. **Playable.** Board, palette, program strip, RUN/RESET, playback of traces. Levels 1–4 playable
    on a tablet.
 4. **Mishaps and sound.** The full command/mishap table, all the sound effects, the speech bubble.
-5. **Content.** Levels 5–14, stars, the level select, dad jokes.
+5. **Content.** Levels 5–14, stars, the level select.
 6. **Ship.** See below.
 7. **Loops**, then the rest of "Later" as she grows into it.
 
@@ -171,7 +173,7 @@ This follows the pattern in `make-believe`:
 ## Open questions
 
 - **How old is she, and does she read yet?** If not, the tiles lead with an icon and the four-letter
-  code is secondary, and goals are pictures only (planned anyway). Optional spoken prompts might help.
+  code is secondary. Goals are outlined on the board, but their words are only in the bubble.
 - **Tablet or laptop?** It decides the default orientation and how big the tiles are.
 - **Personalisation.** Use her name in the goals ("Bring the biscuits to ___")? It would be a
   setting stored locally.

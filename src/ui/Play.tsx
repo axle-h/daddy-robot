@@ -4,7 +4,7 @@ import { speak, stopSpeaking } from '../audio/speech'
 import { parseLevel, run, stars, type Command, type Dir, type RunResult, type Stars, type TraceStep } from '../engine'
 import { LEVELS } from '../levels/levels'
 import { Board, DIR_ANGLE } from './Board'
-import { JOKES } from './jokes'
+import { Icon, Star } from './icons'
 import type { Progress } from './progress'
 import type { Mood } from './Robot'
 import { Tile } from './Tile'
@@ -52,7 +52,7 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
   const [running, setRunning] = useState<Running | null>(null)
   const [index, setIndex] = useState(-1)
   const [finished, setFinished] = useState(false)
-  const [celebration, setCelebration] = useState<{ stars: Stars; joke: string } | null>(null)
+  const [celebration, setCelebration] = useState<Stars | null>(null)
   const [runId, setRunId] = useState(0)
 
   const result = running?.result
@@ -92,10 +92,9 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
 
   const celebrate = useEffectEvent(({ result: won, program: ran }: Running) => {
     const earned = stars(level, ran, won)
-    const joke = JOKES[Math.floor(Math.random() * JOKES.length)]!
     SFX.win()
-    speak(`Hooray! ${joke}`)
-    setCelebration({ stars: earned, joke })
+    speak('Hooray!')
+    setCelebration(earned)
     onProgress((p) => ({ ...p, stars: { ...p.stars, [level.id]: Math.max(p.stars[level.id] ?? 0, earned.count) } }))
   })
 
@@ -163,23 +162,18 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
     <div className="play">
       <header className="bar">
         <button type="button" className="round" onClick={onHome} aria-label="Home">
-          🏠
+          <Icon name="home" />
         </button>
-        <button type="button" className="goal-card" onClick={() => speak(level.intro)} aria-label="Say the goal again">
+        <div className="title">
           <span className="level-no">{levelIndex + 1}</span>
-          {level.card.map((g, i) => (
-            <span key={i} className="goal-glyph">
-              {g}
-            </span>
-          ))}
-          <span className="goal-speak">🔈</span>
-        </button>
+          <span className="title-text">{level.title}</span>
+        </div>
         <div className="toggles">
           <button type="button" className="round" onClick={() => onProgress((p) => ({ ...p, fast: !p.fast }))} aria-label="Speed">
-            {progress.fast ? '🐇' : '🐢'}
+            <Icon name={progress.fast ? 'fast' : 'slow'} />
           </button>
           <button type="button" className="round" onClick={() => onProgress((p) => ({ ...p, muted: !p.muted }))} aria-label="Sound">
-            {progress.muted ? '🔇' : '🔊'}
+            <Icon name={progress.muted ? 'mute' : 'sound'} />
           </button>
         </div>
       </header>
@@ -195,12 +189,13 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
           angle={angle}
           mood={mood}
           moveMs={moveMs(step, speed)}
+          intro={running || program.length > 0 ? undefined : level.intro}
         />
       </main>
 
       <section className="strip" aria-label="Program">
         <div className="strip-tiles">
-          {program.length === 0 && <span className="strip-hint">👇</span>}
+          {program.length === 0 && <span className="strip-hint" />}
           {program.map((c, i) => (
             <Tile key={i} command={c} small state={tileStates[i]} onPress={() => edit((p) => p.filter((_, j) => j !== i))} disabled={busy} />
           ))}
@@ -215,7 +210,7 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
           disabled={busy || program.length === 0}
           aria-label="Clear the program"
         >
-          🗑️
+          <Icon name="bin" />
         </button>
       </section>
 
@@ -237,18 +232,17 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
         </div>
         <div className="go">
           <button type="button" className="big run" onClick={start} disabled={busy} aria-label="Run">
-            ▶
+            <Icon name="play" />
           </button>
           <button type="button" className={`big reset ${lost ? 'pulse' : ''}`} onClick={reset} aria-label="Reset">
-            ↺
+            <Icon name="again" />
           </button>
         </div>
       </section>
 
       {celebration && (
         <Celebration
-          stars={celebration.stars}
-          joke={celebration.joke}
+          stars={celebration}
           onAgain={reset}
           onNext={hasNext ? onNext : onHome}
           onHome={onHome}
@@ -259,7 +253,7 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
   )
 }
 
-function Celebration({ stars: s, joke, onAgain, onNext, onHome, last }: { stars: Stars; joke: string; onAgain: () => void; onNext: () => void; onHome: () => void; last: boolean }) {
+function Celebration({ stars: s, onAgain, onNext, onHome, last }: { stars: Stars; onAgain: () => void; onNext: () => void; onHome: () => void; last: boolean }) {
   const confetti = useMemo(
     () =>
       Array.from({ length: 36 }, (_, i) => ({
@@ -270,11 +264,6 @@ function Celebration({ stars: s, joke, onAgain, onNext, onHome, last }: { stars:
       })),
     [],
   )
-  const earned = [
-    { got: s.won, icon: '🏁' },
-    { got: s.clean, icon: '😇' },
-    { got: s.short, icon: '✂️' },
-  ]
   return (
     <div className="celebrate">
       {confetti.map((c, i) => (
@@ -282,26 +271,22 @@ function Celebration({ stars: s, joke, onAgain, onNext, onHome, last }: { stars:
       ))}
       <div className="celebrate-card">
         <div className="stars">
-          {earned.map((e, i) => (
-            <div key={i} className={`star ${e.got ? 'got' : ''}`} style={{ animationDelay: `${0.3 + i * 0.35}s` }}>
-              <span className="star-glyph">{e.got ? '⭐' : '☆'}</span>
-              <span className="star-why">{e.icon}</span>
+          {[s.won, s.clean, s.short].map((got, i) => (
+            <div key={i} className={`star ${got ? 'got' : ''}`} style={{ animationDelay: `${0.3 + i * 0.35}s` }}>
+              <Star lit={got} />
             </div>
           ))}
         </div>
-        <button type="button" className="joke" onClick={() => speak(joke)}>
-          🤖 {joke}
-        </button>
         <div className="celebrate-buttons">
           <button type="button" className="big reset" onClick={onAgain} aria-label="Play again">
-            ↺
+            <Icon name="again" />
           </button>
           <button type="button" className="big run" onClick={onNext} aria-label={last ? 'Home' : 'Next level'}>
-            {last ? '🏠' : '▶'}
+            <Icon name={last ? 'home' : 'play'} />
           </button>
           {!last && (
             <button type="button" className="round" onClick={onHome} aria-label="Home">
-              🏠
+              <Icon name="home" />
             </button>
           )}
         </div>
