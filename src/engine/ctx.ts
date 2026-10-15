@@ -1,5 +1,5 @@
 import { manhattan } from './geometry'
-import { MISHAPS } from './mishaps'
+import { line, MISHAPS } from './mishaps'
 import type { MishapId, Reaction, Thing, Vec, World, WorldEvent } from './types'
 
 /** One command's work in progress: a private copy of the world, mutated in place, and its events. */
@@ -8,6 +8,8 @@ export interface Ctx {
   events: WorldEvent[]
   /** BKWD: the same mishaps, but he didn't see them coming. */
   backwards: boolean
+  /** Picks which line he says; the same seed always gives the same trace. */
+  seed: number
 }
 
 export const emit = (ctx: Ctx, event: WorldEvent): void => {
@@ -23,7 +25,7 @@ export function mishap(ctx: Ctx, id: MishapId): void {
   if (ctx.world.kaput) return
   const spec = MISHAPS[id]
   emit(ctx, { type: 'mishap', id, kaput: spec.kaput, backwards: ctx.backwards })
-  say(ctx, spec.say)
+  say(ctx, line(spec.say, ctx.seed + ctx.world.mishaps.filter((m) => m === id).length))
   ctx.world.mishaps.push(id)
   if (spec.kaput) ctx.world.kaput = id
   if (spec.loud) wakeBabies(ctx)

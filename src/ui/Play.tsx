@@ -134,7 +134,7 @@ export function Play({ levelIndex, progress, onProgress, onHome, onNext, hasNext
     if (busy) return
     unlockAudio()
     stopSpeaking()
-    setRunning({ result: run(level, program), program })
+    setRunning({ result: run(level, program, runId), program })
     setIndex(-1)
     setFinished(false)
     setCelebration(null)

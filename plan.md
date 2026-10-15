@@ -24,6 +24,9 @@
   - Daddy Robot babbles in Web Audio instead of using `speechSynthesis`: the devices' own voices
     sounded bad and differed everywhere. The words are only in the bubbles, so a recorded voice is
     the option if she needs lines read to her.
+  - Each mishap, and the shrug when a program runs out, has a few lines to say. `run` takes a
+    seed (the UI passes its run counter) that picks the first line, and a repeat of the same
+    mishap in one run moves to the next line, so the engine stays deterministic.
   - No dad jokes, and no emoji in the interface: buttons use drawn line icons, level cards show the
     room in miniature, and emoji are kept for things on the board and the action tiles.
   - Floor textures repeat every cell and keep their lines off cell edges, so rooms tile seamlessly;

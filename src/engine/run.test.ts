@@ -23,6 +23,20 @@ describe('run', () => {
     expect(result.trace.at(-1)).toMatchObject({ pc: 1, events: [{ type: 'shrugged' }, { type: 'said', text: 'Does not compute?' }] })
   })
 
+  it('shrugs with a line picked by the seed', () => {
+    const level = { ...room(['#####', '#>.F#', '#####']), goal: { type: 'onThing', thing: 'flag' } as const }
+    const shrug = (seed: number) => run(level, ['FRWD'], seed).trace.at(-1)!.events.find((e) => e.type === 'said')
+    expect(shrug(1)).toEqual({ type: 'said', text: 'What now?' })
+    expect(shrug(1)).toEqual(shrug(1))
+  })
+
+  it('says something new when the same mishap happens again', () => {
+    const said = run(room(['###', '#>#', '###']), ['FRWD', 'FRWD', 'FRWD'], 3)
+      .trace.flatMap((s) => s.events)
+      .flatMap((e) => (e.type === 'said' ? [e.text] : []))
+    expect(said.slice(0, 3)).toEqual(['Hello, wall.', 'Ow! My beeper!', 'BONK!'])
+  })
+
   it('stops at kaput and ignores the rest of the program', () => {
     const result = run(room(['####', '#>~#', '####']), ['FRWD', 'LEFT', 'LEFT'])
     expect(result.trace).toHaveLength(1)

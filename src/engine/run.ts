@@ -1,14 +1,15 @@
 import { execute } from './commands'
 import type { Ctx } from './ctx'
 import { achieved } from './goals'
+import { line, SHRUGS } from './mishaps'
 import { parseLevel } from './parse'
 import type { Command, Level, RunResult, TraceStep } from './types'
 
-export function run(level: Level, program: readonly Command[]): RunResult {
+export function run(level: Level, program: readonly Command[], seed = 0): RunResult {
   let world = parseLevel(level)
   const trace: TraceStep[] = []
   for (const [pc, command] of program.entries()) {
-    const ctx: Ctx = { world: structuredClone(world), events: [], backwards: false }
+    const ctx: Ctx = { world: structuredClone(world), events: [], backwards: false, seed }
     ctx.world.robot.dizzy = false
     execute(ctx, command)
     world = ctx.world
@@ -18,7 +19,7 @@ export function run(level: Level, program: readonly Command[]): RunResult {
   if (achieved(level.goal, world)) return { trace, outcome: { kind: 'win' } }
   trace.push({
     pc: program.length,
-    events: [{ type: 'shrugged' }, { type: 'said', text: 'Does not compute?' }],
+    events: [{ type: 'shrugged' }, { type: 'said', text: line(SHRUGS, seed) }],
     world,
   })
   return { trace, outcome: { kind: 'incomplete' } }
